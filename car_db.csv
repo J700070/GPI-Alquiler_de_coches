@@ -1,0 +1,9 @@
+ID,Name,Marca,Modelo,Category,Manual,Num_Puertas,Solar_Roof,Oficina
+0,Hyundai Ioniq,Hyundai,Ioniq,Gama media,False,5,False,Oficina Madrid
+1,Renault Megan 1,Renault,Megan,Gama baja,True,5,False,Oficina Madrid
+2,Mini Cooper 1,Mini,Cooper,Gama alta,True,3,False,Oficina Madrid
+3,Nissan X-Trail,Nissan,X-Xtrail,Gama alta,False,3,False,Oficina Madrid
+4,Mini Cooper 2,Mini,Cooper,Gama alta,False,3,False,Oficina Madrid
+5,Renault Megan 2,Renault,Megan,Gama baja,True,5,False,Oficina Madrid
+6,Mini Cooper 3,Mini,Cooper,Gama alta,False,5,False,Oficina Madrid
+7,Mini Cooper 3,Mini,Cooper,Gama alta,True,5,False,Oficina Madrid
