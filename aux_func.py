@@ -12,11 +12,18 @@ import pandas as pd
 
 
 def check_datetime(fecha_recogida, hora_recogida, fecha_entrega, hora_entrega):
+    # Si fecha es hoy
+    if fecha_recogida == datetime.date.today():
+        if hora_recogida < datetime.datetime.now().time() :
+            return 5
+
+
     if (fecha_recogida < fecha_entrega):
         return check_hora(hora_recogida, hora_entrega)
     elif fecha_recogida == fecha_entrega:
         if (hora_recogida < hora_entrega):
-         return check_hora(hora_recogida, hora_entrega)
+            return check_hora(hora_recogida, hora_entrega)
+
         else:
             # Fecha de recogida igual a fecha de entrega y hora de recogida mayor a hora de entrega
             return 3

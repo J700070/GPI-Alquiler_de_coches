@@ -2,7 +2,6 @@ import datetime
 import streamlit as st
 import pandas as pd
 from aux_func import *
-import time
 
 # ----------------------- LAYOUT ---------------------------
 st.set_page_config(page_title="Alquiler de Coches")
@@ -15,8 +14,10 @@ reservas_df = pd.read_csv('reservas_db.csv')
 descuentos_df = pd.read_csv('descuentos_db.csv')
 
 # ----------------------- Sidebar ---------------------------
-
-page = st.sidebar.selectbox("Choose your page:", ["Inicio de Sesión", "Alquilar Coche"]) 
+if st.session_state.get('key') == "valid":
+    page = "Alquilar Coche"
+else:
+    page = "Inicio de Sesión"
 
 # ----------------------- Multipage ---------------------------
 
@@ -36,6 +37,7 @@ if page == "Inicio de Sesión":
             else:
                 st.session_state['key'] = "valid"
                 st.success("Sesión iniciada correctamente. Ya puedes comenzar a alquilar un coche.")
+                st.experimental_rerun()
 
 elif page == "Alquilar Coche":
     placeholder = st.empty()
@@ -49,16 +51,16 @@ elif page == "Alquilar Coche":
 
             cols = st.columns(2)
             # Seleccionar fecha y hora recogida
-            fecha_recogida = cols[0].date_input("Fecha de recogida", datetime.date.today())
+            fecha_recogida = cols[0].date_input("Fecha de recogida", datetime.date.today(), min_value=datetime.date.today())
             hora_recogida = cols[1].time_input("Hora de recogida", datetime.time(hour=8, minute=0))
 
-            st.subheader("Datos de recogida")
+            st.subheader("Datos de entrega")
             # Seleccionar oficina entrega
             oficina_entrega = st.selectbox("Elegir oficina de entrega", oficinas_df['Nombre'].tolist())
 
             cols = st.columns(2)
             # Seleccionar fecha y hora entrega
-            fecha_entrega = cols[0].date_input("Fecha de entrega", datetime.date.today())
+            fecha_entrega = cols[0].date_input("Fecha de entrega", fecha_recogida, min_value=fecha_recogida)
             hora_entrega = cols[1].time_input("Hora de entrega", datetime.time(hour=8, minute=0))
 
             check_datetime_value = check_datetime(fecha_recogida, hora_recogida, fecha_entrega, hora_entrega)
@@ -68,18 +70,21 @@ elif page == "Alquilar Coche":
             elif check_datetime_value == 2:
                 st.error("Hora de entrega no válida. El horario de apertura es de 8:00 a 22:00")
             elif check_datetime_value == 3:
-                st.error("Hora de recogida mayor a la hora de entrega. ")
+                st.error("Hora de recogida mayor o igual a la hora de entrega. ")
             elif check_datetime_value == 4:
-                st.error("Fecha de recogida superior a fecha de entrega.")
+                st.error("Fecha de recogida posterior a fecha de entrega.")
+            elif check_datetime_value == 5:
+                st.error("Hora de recogida anterior a fecha actual.")
             else:
-                # placeholder.empty()
                 st.subheader("Elegir vehículo")
                 car_df = get_available_cars(oficina_recogida)
+
                 # Reservar vehículo
                 car_gamma_selected = st.selectbox("Seleccionar gama", car_df['Category'].unique())
                 cols = st.columns(2)
                 car_brand_selected = cols[0].selectbox("Seleccionar coche", car_df[car_df["Category"] == car_gamma_selected]['Marca'].unique())
-                car_model_selected = cols[1].selectbox("Seleccionar modelo", car_df[car_df['Marca'] == car_brand_selected]['Modelo'].unique())
+                available_cars = car_df[(car_df["Marca"] == car_brand_selected) & (car_df["Category"] == car_gamma_selected)]['Modelo']
+                car_model_selected = cols[1].selectbox("Seleccionar modelo", available_cars.unique())
                 available_cars = car_df[(car_df["Category"] == car_gamma_selected) & (car_df['Marca'] == car_brand_selected) & (car_df['Modelo'] == car_model_selected)]
                 conducción_selected = st.radio("Conducción", available_cars["Manual"].map({False:"Automático", True:"Manual"}).unique())
                 conduccion_binary = 1 if conducción_selected == "Manual" else 0
@@ -91,7 +96,7 @@ elif page == "Alquilar Coche":
                 available_cars = car_df[(car_df["Category"] == car_gamma_selected) & (car_df['Marca'] == car_brand_selected) & (car_df['Modelo'] == car_model_selected) & (car_df['Manual'] == conduccion_binary) & (car_df['Num_Puertas'] == num_puertas_selected) & (car_df['Solar_Roof'] == soalr_roof_binary)]
                 lista_coches_disponibles = available_cars["Name"].to_list()
                 lista_coches_disponibles.insert(0,"Ninguno")
-                car_selected = st.selectbox("Seleccionar modelo", lista_coches_disponibles)
+                car_selected = st.selectbox("Seleccionar coche", lista_coches_disponibles)
                 
                 if car_selected != "Ninguno":
                     st.subheader("Otros Datos")
@@ -135,7 +140,7 @@ elif page == "Alquilar Coche":
                         st.error("Tarjeta no válida. El nombre del titular debe tener al menos 3 caracteres.")
                     else:
                         info_cols = st.columns(2)
-                        info_cols[0].subheader("Información de recogida")
+                        info_cols[0].subheader("Información de reserva")
                         with info_cols[0]:
                             st.write("Oficina de recogida: ", oficina_recogida)
                             st.write("Fecha de recogida: ", fecha_recogida)
@@ -164,14 +169,14 @@ elif page == "Alquilar Coche":
                             st.write("¿Está seguro de que desea confirmar la reserva?")
                             confirmar_pedido = st.button("Confirmar reserva")
 
-                            if confirmar_pedido:
-                                if len(reservas_df) != 0:
-                                    new_id =  reservas_df.index[-1] + 1
-                                else:
-                                    new_id = 0
-                                reservas_df.loc[len(reservas_df)] = [new_id, fecha_recogida,hora_recogida,fecha_entrega,hora_entrega,oficina_recogida, oficina_entrega,car_selected, client_type_selected, "Tarifa Test", descuento, "Ninguno", num_tarjeta_selected, nombre_titular_selected, 9999]
-                                reservas_df.to_csv("reservas_db.csv", index=False)
-                                st.success("Se ha confirmado la reserva.")
+                        if confirmar_pedido:
+                            if len(reservas_df) != 0:
+                                new_id =  reservas_df.index[-1] + 1
+                            else:
+                                new_id = 0
+                            reservas_df.loc[len(reservas_df)] = [new_id, fecha_recogida,hora_recogida,fecha_entrega,hora_entrega,oficina_recogida, oficina_entrega,car_selected, client_type_selected, "Tarifa Test", descuento, "Ninguno", num_tarjeta_selected, nombre_titular_selected, 9999]
+                            reservas_df.to_csv("reservas_db.csv", index=False)
+                            st.success("Se ha confirmado la reserva.")
     else:
         st.markdown("#")
         st.markdown("#")

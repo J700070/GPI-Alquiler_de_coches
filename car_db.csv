@@ -7,3 +7,16 @@ ID,Name,Marca,Modelo,Category,Manual,Num_Puertas,Solar_Roof,Oficina
 5,Renault Megan 2,Renault,Megan,Gama baja,True,5,False,Oficina Madrid
 6,Mini Cooper 3,Mini,Cooper,Gama alta,False,5,False,Oficina Madrid
 7,Mini Cooper 3,Mini,Cooper,Gama alta,True,5,False,Oficina Madrid
+8,Nissan Primera,Nissan,Primera,Gama media,False,5,False,Oficina Madrid
+9,Nissan Juke,Nissan,Juke,Gama media,False,5,False,Oficina Madrid
+10,Nissan Sentra,Nissan,Sentra,Gama media,False,5,False,Oficina Madrid
+11,Nissan Note,Nissan,Note,Gama media,False,5,False,Oficina Madrid
+12,Nissan Versa,Nissan,Versa,Gama media,False,5,False,Oficina Madrid 
+13,Nissan Altima,Nissan,Altima,Gama media,False,5,False,Oficina Madrid
+14,Nissan Tiida,Nissan,Tiida,Gama media,False,5,False,Oficina Madrid
+10,Nissan Sentra,Nissan,Sentra,Gama media,False,5,False,Oficina Madrid
+11,Nissan Sentra,Nissan,Sentra,Gama media,True,5,False,Oficina Madrid
+12,Nissan Sentra,Nissan,Sentra,Gama media,True,3,False,Oficina Madrid
+13,Nissan Sentra 1,Nissan,Sentra,Gama media,True,5,True,Oficina Madrid
+14,Nissan Sentra 2,Nissan,Sentra,Gama media,True,5,True,Oficina Madrid
+15,Nissan Sentra 3,Nissan,Sentra,Gama media,True,5,True,Oficina Madrid
