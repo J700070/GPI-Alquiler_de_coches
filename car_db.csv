@@ -1,22 +1,25 @@
-ID,Name,Marca,Modelo,Category,Manual,Num_Puertas,Solar_Roof,Oficina,Precio_por_dia
-0,Hyundai Ioniq,Hyundai,Ioniq,Gama media,False,5,False,Oficina Madrid,70
-1,Renault Megan 1,Renault,Megan,Gama baja,True,5,False,Oficina Madrid,60
-2,Mini Cooper 1,Mini,Cooper,Gama alta,True,3,False,Oficina Madrid,95
-3,Nissan X-Trail,Nissan,X-Xtrail,Gama alta,False,3,False,Oficina Madrid,120
-4,Mini Cooper 2,Mini,Cooper,Gama alta,False,3,False,Oficina Madrid,100
-5,Renault Megan 2,Renault,Megan,Gama baja,True,5,False,Oficina Madrid,65
-6,Mini Cooper 3,Mini,Cooper,Gama alta,False,5,False,Oficina Madrid,105
-7,Mini Cooper 3,Mini,Cooper,Gama alta,True,5,False,Oficina Madrid,95
-8,Nissan Primera,Nissan,Primera,Gama media,False,5,False,Oficina Madrid,80
-9,Nissan Juke,Nissan,Juke,Gama media,False,5,False,Oficina Madrid,80
-10,Nissan Sentra,Nissan,Sentra,Gama media,False,5,False,Oficina Madrid,85
-11,Nissan Note,Nissan,Note,Gama media,False,5,False,Oficina Madrid,75
-12,Nissan Versa,Nissan,Versa,Gama media,False,5,False,Oficina Madrid,75
-13,Nissan Altima,Nissan,Altima,Gama media,False,5,False,Oficina Madrid,70
-14,Nissan Tiida,Nissan,Tiida,Gama media,False,5,False,Oficina Madrid,79
-10,Nissan Sentra,Nissan,Sentra,Gama media,False,5,False,Oficina Madrid,80
-11,Nissan Sentra,Nissan,Sentra,Gama media,True,5,False,Oficina Madrid,90
-12,Nissan Sentra,Nissan,Sentra,Gama media,True,3,False,Oficina Madrid,65
-13,Nissan Sentra 1,Nissan,Sentra,Gama media,True,5,True,Oficina Madrid,70
-14,Nissan Sentra 2,Nissan,Sentra,Gama media,True,5,True,Oficina Madrid,80
-15,Nissan Sentra 3,Nissan,Sentra,Gama media,True,5,True,Oficina Madrid,75
+,Name,Marca,Modelo,Category,Manual,Num_Puertas,Solar_Roof,Oficina,Precio_por_dia
+0,Hyundai Ioniq,Hyundai,Ioniq,Gama media,False,5,False,Oficina Madrid,70.0
+1,Renault Megan 1,Renault,Megan,Gama baja,True,5,False,Oficina Madrid,60.0
+2,Mini Cooper 1,Mini,Cooper,Gama alta,True,3,False,Oficina Madrid,95.0
+3,Nissan X-Trail,Nissan,X-Xtrail,Gama alta,False,3,False,Oficina Madrid,120.0
+4,Mini Cooper 2,Mini,Cooper,Gama alta,False,3,False,Oficina Madrid,100.0
+5,Renault Megan 2,Renault,Megan,Gama baja,True,5,False,Oficina Madrid,65.0
+6,Mini Cooper 3,Mini,Cooper,Gama alta,False,5,False,Oficina Madrid,105.0
+7,Mini Cooper 3,Mini,Cooper,Gama alta,True,5,False,Oficina Madrid,95.0
+8,Nissan Primera,Nissan,Primera,Gama media,False,5,False,Oficina Madrid,80.0
+9,Nissan Juke,Nissan,Juke,Gama media,False,5,False,Oficina Madrid,80.0
+10,Nissan Sentra,Nissan,Sentra,Gama media,False,5,False,Oficina Madrid,85.0
+11,Nissan Note,Nissan,Note,Gama media,False,5,False,Oficina Madrid,75.0
+12,Nissan Versa,Nissan,Versa,Gama media,False,5,False,Oficina Madrid,75.0
+13,Nissan Altima,Nissan,Altima,Gama media,False,5,False,Oficina Madrid,70.0
+14,Nissan Tiida,Nissan,Tiida,Gama media,False,5,False,Oficina Madrid,79.0
+15,Nissan Sentra,Nissan,Sentra,Gama media,False,5,False,Oficina Madrid,80.0
+16,Nissan Sentra,Nissan,Sentra,Gama media,True,5,False,Oficina Madrid,90.0
+17,Nissan Sentra,Nissan,Sentra,Gama media,True,3,False,Oficina Madrid,65.0
+18,Nissan Sentra 1,Nissan,Sentra,Gama media,True,5,True,Oficina Madrid,70.0
+19,Nissan Sentra 2,Nissan,Sentra,Gama media,True,5,True,Oficina Madrid,80.0
+20,Nissan Sentra 3,Nissan,Sentra,Gama media,True,5,True,Oficina Madrid,75.0
+21,customizado,tio_pepe,tio_pepe,Gama media,Manual,2,No,Oficina Barcelona,5.5
+22,customizado1,tio_pepe,tio_pepe,Gama media,True,2,No,Oficina Barcelona,5.5
+23,customizado2,tio_pepe,tio_pepe,Gama media,True,2,False,Oficina Barcelona,5.5

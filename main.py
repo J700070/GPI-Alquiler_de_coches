@@ -1,4 +1,5 @@
 import datetime
+from unicodedata import category
 import streamlit as st
 import pandas as pd
 from aux_func import *
@@ -10,17 +11,17 @@ st.set_page_config(page_title="Alquiler de Coches")
 
 # ----------------------- BACKEND ---------------------------
 oficinas_df = pd.read_csv('oficinas_db.csv', index_col=0)
-car_df = pd.read_csv('car_db.csv')
-reservas_df = pd.read_csv('reservas_db.csv')
+car_df = pd.read_csv('car_db.csv', index_col=0)
+reservas_df = pd.read_csv('reservas_db.csv', index_col=0)
 descuentos_df = pd.read_csv('descuentos_db.csv')
 
 # ----------------------- Navigation ---------------------------
 # Comprobamos si el usuario es administrador
 is_admin = is_admin(st.session_state.get('user_id'))
 if is_admin:
-    page_list = ("Alquilar Coche", "Modificar datos de usuario", "Gestionar oficinas")
+    page_list = ("Alquilar Coche", "Modificar datos de usuario", "Gestionar oficinas","Gestionar coches")
 else:
-    page_list = ("Alquilar Coche", "Modificar datos de usuario")
+    page_list = ("Alquilar Coche", "Modificar datos de usuario","Mis reservas")
 page = navigation(st, page_list)
 
 
@@ -133,6 +134,7 @@ elif page == "Modificar datos de usuario":
                 else:
                     st.error("Error al eliminar cuenta.")
 
+# GESTIÓN DE OFICINAS
 elif page == "Gestionar oficinas":
     placeholder = st.empty()
 
@@ -153,16 +155,20 @@ elif page == "Gestionar oficinas":
             if state == 0:
                 st.success("Oficina añadida correctamente.")
                 st.experimental_rerun()
+            elif state == 1:
+                st.error("Ya existe una oficina con ese nombre.")
             else:
                 st.error("Error al añadir oficina.")
 
         # Eliminar oficina
         st.subheader("Eliminar oficina")
-        oficina = st.selectbox('Selecciona la oficina a eliminar', oficinas_df.index)
+        oficina = st.selectbox('Selecciona la oficina a eliminar', oficinas_df['Nombre'])
+
+        office_index = oficinas_df[oficinas_df['Nombre'] == oficina].index[0]
 
         # Botón de eliminar oficina
         if st.button('Eliminar oficina'):
-            state = delete_office(oficina)
+            state = delete_office(office_index)
             if state == 0:
                 st.success("Oficina eliminada correctamente.")
                 st.experimental_rerun()
@@ -171,62 +177,131 @@ elif page == "Gestionar oficinas":
 
         # Modificar oficina
         st.subheader("Modificar oficina")
-        oficina = st.selectbox('Selecciona la oficina a modificar', oficinas_df.index)
-        nombre = st.text_input('Nuevo nombre de la oficina', oficinas_df.loc[oficina, 'Nombre'])
+        oficina = st.selectbox('Selecciona la oficina a modificar', oficinas_df["Nombre"])
+        nombre = st.text_input('Nuevo nombre de la oficina')
         
+        office_index = oficinas_df[oficinas_df['Nombre'] == oficina].index[0]
+
         # Botón de modificar oficina
         if st.button('Modificar oficina'):
-            state = edit_office(oficina, nombre)
+            state = edit_office(office_index, nombre)
             if state == 0:
                 st.success("Oficina modificada correctamente.")
                 st.experimental_rerun()
+            elif state == 1:
+                st.error("Ya existe una oficina con ese nombre.")
             else:
                 st.error("Error al modificar oficina.")
 
+# GESTIÓN DE COCHES
+elif page == "Gestionar coches":
+    placeholder = st.empty()
 
-elif page == "Reservas":
+    with placeholder.container():
+        st.title("Gestión de vehículos")
+
+        # Mostrar vehículo
+        st.subheader("Vehículos")
+        st.write(car_df)
+
+        # Añadir vehículos
+        st.subheader("Añadir vehículo")
+        nombre = st.text_input('Nombre del vehículo')
+        marca = st.text_input('Marca del vehículo')
+        modelo = st.text_input('Modelo del vehículo')
+        category = st.selectbox('Categoría del vehículo', ['Gama baja', 'Gama media', 'Gama alta'])        
+        manual = True if st.selectbox('Tipo de vehículo', ['Manual', 'Automatico']) == 'Manual' else False
+        num_puertas = st.selectbox('Número de puertas', [2, 3, 4, 5, 6, 7, 8])
+        solar_roof = True if st.selectbox('Techo solar', ['Sí', 'No']) == 'Sí' else False
+        oficina = st.selectbox('Oficina', oficinas_df['Nombre'])
+        precio_dia = st.number_input('Precio por día', min_value=0., value=0.,step=1.,format="%.2f")
+        
+        # Botón de añadir vehículo
+        if st.button('Añadir vehículo'):
+            state = add_car(nombre,marca,modelo,category,manual,num_puertas,solar_roof,oficina,precio_dia)
+            if state == 0:
+                st.success("Vehículo añadido correctamente.")
+                time.sleep(2)
+                st.experimental_rerun()
+            elif state == 1:
+                st.error("Ya existe un vehículo con ese nombre.")
+            else:
+                st.error("Error al añadir vehículo.")
+
+        # Eliminar vehículo
+        st.subheader("Eliminar vehículo")
+        car = st.selectbox('Selecciona el vehículo a eliminar', car_df['Name'])
+
+        car_index = car_df[car_df['Name'] == car].index[0]
+
+        # Botón de eliminar vehículo
+        if st.button('Eliminar oficina'):
+            state = delete_car(car_index)
+            if state == 0:
+                st.success("Vehículo eliminado correctamente.")
+                time.sleep(1)
+                st.experimental_rerun()
+            else:
+                st.error("Error al eliminar vehículo.")
+
+        # Modificar vehículo
+        st.subheader("Modificar vehículo")
+        car = st.selectbox('Selecciona el vehículo a modificar', car_df["Name"], index=0)
+        car_index = car_df[car_df['Name'] == car].index[0]
+        nombre = st.text_input('Nuevo nombre del vehículo', car_df.loc[car_index, 'Name'])
+        marca = st.text_input('Nueva marca del vehículo', car_df.loc[car_index, 'Marca'])
+        modelo = st.text_input('Nuevo modelo del vehículo', car_df.loc[car_index, 'Modelo'])
+        category = st.selectbox('Nueva categoría del vehículo', ['Gama baja', 'Gama media', 'Gama alta'])
+        manual = True if st.selectbox('Nueva transmisión del vehículo', ['Manual', 'Automatico']) == 'Manual' else False
+        num_puertas = st.selectbox('Nuevo número de puertas', [2, 3, 4, 5, 6, 7, 8])
+        solar_roof = True if st.selectbox('Nuevo techo solar', ['Sí', 'No']) == 'Sí' else False
+        oficina = st.selectbox('Nueva oficina', oficinas_df['Nombre'])
+        precio_dia = st.number_input('Nuevo precio por día',value=float(car_df.loc[car_index, 'Precio_por_dia']), min_value=0.,step=1.,format="%.2f")
+        
+
+
+        # Botón de modificar vehículo
+        if st.button('Modificar vehículo'):
+            state = edit_car(car_index, nombre, marca, modelo, category, manual, num_puertas, solar_roof, oficina, precio_dia)
+            if state == 0:
+                st.success("Vehículo modificado correctamente.")
+                time.sleep(1)
+                st.experimental_rerun()
+            elif state == 1:
+                st.error("Ya existe un vehículo con ese nombre.")
+            else:
+                st.error("Error al modificar vehículo.")
+
+
+
+elif page == "Mis reservas":
     placeholder = st.empty()
 
     with placeholder.container():
         st.title("Mis reservas")
 
-        if st.button('Ir a alquiler de coches'):
-                st.session_state['pageName'] = "Alquilar Coche"
-                st.experimental_rerun()
-
         st.header("Gestionar reservas")
 
-        client_ID = st.session_state.get('ID')
-        reservas = reservas_df[reservas_df["Client_ID"] == client_ID]
+        client_ID = st.session_state.get('user_id')
+        booking_ids = get_user_bookings(client_ID)
+        reservas = reservas_df.loc[booking_ids]
 
-        st.table(reservas.drop(['ID','Tipo Cliente','Tarifa','Num_Tarjeta','Titular','Client_ID','Descuento'], axis = 1))
+        st.dataframe(reservas.drop(['Tipo Cliente','Num_Tarjeta','Titular'], axis = 1))
 
-elif page == "Reservas":
-    placeholder = st.empty()
+        # Eliminar vehículo
+        st.subheader("Eliminar reserva")
+        reserva_index = st.selectbox('Selecciona la reserva a eliminar', reservas.index)
 
-    with placeholder.container():
-        st.title("Mis reservas")
 
-        if st.button('Ir a alquiler de coches'):
-                st.session_state['pageName'] = "Alquilar Coche"
+        # Botón de eliminar vehículo
+        if st.button('Eliminar reserva'):
+            state = delete_user_booking(client_ID,reserva_index)
+            if state == 0:
+                st.success("Reserva eliminada correctamente.")
+                time.sleep(1)
                 st.experimental_rerun()
-
-        st.header("Gestionar reservas")
-
-        client_ID = st.session_state.get('ID')
-        reservas = reservas_df[reservas_df["Client_ID"] == client_ID]
-
-        st.table(reservas.drop(['ID','Tipo Cliente','Tarifa','Num_Tarjeta','Titular','Client_ID','Descuento'], axis = 1))
-
-        option = st.selectbox(
-            'Selecciona la reserva que desees eliminar',
-            (reservas["Coche"].to_list()))
-        st.write('Confirma para eliminar:', option)
-
-        if st.button('Confirmar'):
-            reservas = reservas[reservas.Coche != option] 
-            reservas.to_csv("reservas_db.csv", index=False)
-            st.experimental_rerun()
+            else:
+                st.error("Error al eliminar reserva.")
 
 elif page == "Alquilar Coche":
     placeholder = st.empty()
@@ -409,7 +484,7 @@ elif page == "Alquilar Coche":
                             new_id =  reservas_df.index[-1] + 1
                         else:
                             new_id = 0
-                        reservas_df.loc[len(reservas_df)] = [new_id, fecha_recogida,hora_recogida,fecha_entrega,hora_entrega,oficina_recogida, oficina_entrega,car_selected, client_type_selected, "Tarifa Test", descuento, "Ninguno", num_tarjeta_selected, nombre_titular_selected, 9999]
+                        reservas_df.loc[len(reservas_df)] = [new_id, fecha_recogida,hora_recogida,fecha_entrega,hora_entrega,oficina_recogida, oficina_entrega,car_selected, client_type_selected, "Tarifa Test", descuento, "Ninguno", num_tarjeta_selected, nombre_titular_selected, 9999,True]
                         reservas_df.to_csv("reservas_db.csv", index=False)
                         st.success("Se ha confirmado la reserva.")
 

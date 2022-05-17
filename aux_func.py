@@ -1,3 +1,4 @@
+import ast
 from datetime import time
 import datetime
 from traceback import print_tb
@@ -82,6 +83,7 @@ def check_user_and_password(usuario, contraseña="", password=True, email = "", 
 
     if drop != "":
         users_df.drop(drop, inplace=True)
+
     # Buscamos correspondencias
     for i, row in users_df.iterrows():
         # Si no queremos comprobar la contraseña
@@ -96,10 +98,7 @@ def check_user_and_password(usuario, contraseña="", password=True, email = "", 
 
 def add_user(usuario, contraseña, email, admin):
     users_df = pd.read_csv('users_db.csv', index_col=0)
-
-    # add new row
-    users_df.loc[len(users_df)] = [usuario,email,contraseña,admin]
-    # save
+    users_df.loc[len(users_df)] = [usuario,email,contraseña,admin,[]]
     users_df.to_csv('users_db.csv')
     return 0
 
@@ -116,6 +115,15 @@ def navigation(st, page_list):
     elif st.session_state.get('page') == "Gestionar oficinas":
         page = "Gestionar oficinas"
         page = sidebar(st, page_list)
+
+    elif st.session_state.get('page') == "Gestionar coches":
+        page = "Gestionar coches"
+        page = sidebar(st, page_list)
+
+    elif st.session_state.get('page') == "Mis reservas":
+        page = "Mis reservas"
+        page = sidebar(st, page_list)
+
     elif st.session_state.get('page') == "Registro usuario":
         page = "Registro usuario"
 
@@ -201,18 +209,26 @@ def delete_user(user_id):
     users_df.to_csv('users_db.csv',)
     return 0
 
+
 def is_admin(user_id):
     if user_id == None:
         return False
     users_df = pd.read_csv('users_db.csv', index_col=0)
     return users_df.at[user_id,"administrador"]
 
+
 def add_office(name):
     offices_df = pd.read_csv('oficinas_db.csv', index_col=0)
+
+    # Comprobar que el nombre no está cogido
+    for i, row in offices_df.iterrows():
+        if row['Nombre'] == name:
+            return 1
     # add new row
     offices_df.loc[len(offices_df)] = [name]
     offices_df.to_csv('oficinas_db.csv')
     return 0
+
 
 def delete_office(name):
     offices_df = pd.read_csv('oficinas_db.csv', index_col=0)
@@ -221,8 +237,75 @@ def delete_office(name):
     offices_df.to_csv('oficinas_db.csv',)
     return 0
 
+
 def edit_office(name, new_name):
     offices_df = pd.read_csv('oficinas_db.csv', index_col=0)
+    # Comprobar que el nombre no está cogido
+    for i, row in offices_df.iterrows():
+        if row['Nombre'] == name:
+            return 1
     offices_df.at[name,"Nombre"] = new_name
     offices_df.to_csv('oficinas_db.csv')
+    return 0
+
+def add_car(name,marca,modelo,category,manual,num_puertas,solar_roof,oficina,precio_por_dia):
+    cars_df = pd.read_csv('car_db.csv', index_col=0)
+
+    # Comprobar que el nombre no está cogido
+    for i, row in cars_df.iterrows():
+        if row['Name'] == name:
+            return 1
+
+    cars_df.loc[len(cars_df)] = [name,marca,modelo,category,manual,num_puertas,solar_roof,oficina,precio_por_dia]
+    cars_df.to_csv('car_db.csv')
+    return 0
+
+def delete_car(car_id):
+    cars_df = pd.read_csv('car_db.csv', index_col=0)
+    cars_df.drop(car_id, inplace=True)
+    cars_df.reset_index(drop=True, inplace=True)
+    cars_df.to_csv('car_db.csv',)
+    return 0
+
+def edit_car(name,marca,modelo,category,manual,num_puertas,solar_roof,oficina,precio_por_dia):
+    cars_df = pd.read_csv('car_db.csv', index_col=0)
+    # Comprobar que el nombre no está cogido
+    for i, row in cars_df.iterrows():
+        if row['Name'] == name:
+            return 1
+    cars_df.at[name,"Marca"] = marca
+    cars_df.at[name,"Modelo"] = modelo
+    cars_df.at[name,"Category"] = category
+    cars_df.at[name,"Manual"] = manual
+    cars_df.at[name,"Num_Puertas"] = num_puertas
+    cars_df.at[name,"Solar_Roof"] = solar_roof
+    cars_df.at[name,"Oficina"] = oficina
+    cars_df.at[name,"Precio_por_Dia"] = precio_por_dia
+    cars_df.to_csv('car_db.csv')
+    return 0
+
+
+def get_user_bookings(client_id):
+    if client_id == None:
+        return []
+    users_df = pd.read_csv('users_db.csv', index_col=0)
+    reservas_string = users_df.at[client_id,"reservas"]
+    # convert from list in string to list
+    reservas_list = ast.literal_eval(reservas_string)
+    return reservas_list
+
+def delete_user_booking(client_id, booking_id):
+    users_df = pd.read_csv('users_db.csv', index_col=0)
+    reservas_string = users_df.at[client_id,"reservas"]
+    # convert from list in string to list
+    reservas_list = ast.literal_eval(reservas_string)
+    reservas_list.remove(booking_id)
+    users_df.at[client_id,"reservas"] = reservas_list
+    users_df.to_csv('users_db.csv')
+
+    # delete booking
+    reservas_df = pd.read_csv('reservas_db.csv', index_col=0)
+    reservas_df.at[booking_id,"Active"] = False
+    reservas_df.to_csv('reservas_db.csv')
+
     return 0
