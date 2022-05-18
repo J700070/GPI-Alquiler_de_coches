@@ -124,6 +124,10 @@ def navigation(st, page_list):
         page = "Mis reservas"
         page = sidebar(st, page_list)
 
+    elif st.session_state.get('page') == "Comprobar facturación":
+        page = "Comprobar facturación"
+        page = sidebar(st, page_list)
+
     elif st.session_state.get('page') == "Registro usuario":
         page = "Registro usuario"
 
@@ -309,3 +313,11 @@ def delete_user_booking(client_id, booking_id):
     reservas_df.to_csv('reservas_db.csv')
 
     return 0
+
+def get_bookings_for_period(start_date, end_date):
+    reservas_df = pd.read_csv('reservas_db.csv', index_col=0)
+    # convert fecha recogida to datetime
+    reservas_df['Fecha Recogida'] = pd.to_datetime(reservas_df['Fecha Recogida'])
+    reservas_df = reservas_df[reservas_df['Fecha Recogida'] >= start_date]
+    reservas_df = reservas_df[reservas_df['Fecha Recogida'] <= end_date]
+    return reservas_df

@@ -5,6 +5,7 @@ import pandas as pd
 from aux_func import *
 import time
 
+
 # ----------------------- LAYOUT ---------------------------
 st.set_page_config(page_title="Alquiler de Coches")
 
@@ -19,7 +20,7 @@ descuentos_df = pd.read_csv('descuentos_db.csv')
 # Comprobamos si el usuario es administrador
 is_admin = is_admin(st.session_state.get('user_id'))
 if is_admin:
-    page_list = ("Alquilar Coche", "Modificar datos de usuario", "Gestionar oficinas","Gestionar coches")
+    page_list = ("Alquilar Coche", "Modificar datos de usuario", "Gestionar oficinas","Gestionar coches","Comprobar facturación")
 else:
     page_list = ("Alquilar Coche", "Modificar datos de usuario","Mis reservas")
 page = navigation(st, page_list)
@@ -303,6 +304,36 @@ elif page == "Mis reservas":
             else:
                 st.error("Error al eliminar reserva.")
 
+elif page == "Comprobar facturación":
+    placeholder = st.empty()
+
+    with placeholder.container():
+        st.title("Comprobar facturación")
+
+        st.header("Consulta la facturación para un periodo")
+
+        # current day datetime
+        today = datetime.datetime.now()
+
+        start_time = st.slider(
+            "Selecciona el principio del periodo",
+            value=datetime.datetime(2020, 1, 1),
+            min_value=datetime.datetime(2018, 1, 1),
+            max_value=datetime.datetime(2023, 1, 1),
+            format="DD/MM/YY")
+        st.write("Fecha de inicio:", start_time.strftime("%d/%m/%Y"))
+        st.write("Fecha de fin:", today.strftime("%d/%m/%Y"))
+
+        # Get all bookings for the period
+        bookings = get_bookings_for_period(start_time, today)
+
+        facturación = 0
+        facturación = bookings["Cantidad Pago"].sum() # Total amount paid
+
+        st.header(f"Total facturado: {facturación}€")
+
+
+
 elif page == "Alquilar Coche":
     placeholder = st.empty()
     with placeholder.container():
@@ -362,9 +393,47 @@ elif page == "Alquilar Coche":
             car_selected = st.selectbox("Seleccionar coche", lista_coches_disponibles)
             
             if car_selected != "Ninguno":
+
+                #Obtener el precio por tarifa
+                coche_elegido = available_cars.loc[available_cars['Name'] == str(car_selected)]
+                precio_base = coche_elegido['Precio_por_dia'].to_list()[0]
+                precio_tarifa = 0
+
                 #Seleccionar tarifa 
                 st.subheader("Tarifas")
                 tarifa = st.radio("Seleccione el tipo de tarifa que desea aplicar",('Por kilometraje', 'Por día', 'Semanal', 'De fin de semana','De larga duración'))
+
+                num_dias=(fecha_entrega-fecha_recogida).days
+                num_semanas=0
+
+                 #Aplicar tarifa
+                if tarifa == 'De larga duración' and num_dias<=10:
+                    st.error("Las tarifas de larga duración solo están disponibles para reservas superiores a 10 días")
+                elif tarifa == 'De larga duración':
+                    precio_tarifa = int(precio_base)*0.8
+                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa de larga duración es de {precio_tarifa}€ por día.")
+                    
+                if tarifa == 'De fin de semana' and (fecha_recogida.weekday()!=4 or num_dias!=2):
+                    st.error("Las tarifas de fin de semana solo están disponibles para reservas en fines de semana. Se debe escoger un viernes como fecha de recogida y un domingo como fecha de entrega.")
+                elif tarifa == 'De fin de semana':
+                    precio_tarifa = int(precio_base)*1.8
+                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa de fin de semana es de {precio_tarifa}€ por fin de semana.")
+
+                if tarifa == 'Semanal' and num_dias % 7 != 0:
+                    st.error("El número de días de la reserva no es divisible por semanas")
+                elif tarifa == 'Semanal':
+                    precio_tarifa = int(precio_base)*6.3
+                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa semanal es de {precio_tarifa}€ por semana.")
+                    num_semanas = num_dias / 7
+                      
+                if tarifa == 'Por kilometraje':
+                    precio_tarifa = int(precio_base)*0.009
+                    st.markdown(f"Con esta tarifa el pago se realiza en el momento de entregar el vehículo. En estos momentos solo se tendrán que abonar posibles extras que se quieran añadir. El precio por kilometro será de {precio_tarifa}€")
+
+                if tarifa == 'Por día':
+                    precio_tarifa = int(precio_base)
+                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa por día es de {precio_tarifa}€ por día.")
+
 
                 st.subheader("Otros Datos")
                 client_type_selected = st.radio("Tipo de cliente", ["Cliente regular", "Cliente de negocio"])
@@ -384,45 +453,71 @@ elif page == "Alquilar Coche":
                 gps = st.checkbox("GPS (+ 15€)")
                 silla = st.checkbox("Silla de seguridad (+ 20€)")
                 cadenas = st.checkbox("Cadenas de nieve (+ 35€)")
-                
-                #Obtener el precio total
-                coche_elegido = available_cars.loc[available_cars['Name'] == str(car_selected)]
-                precio_base = coche_elegido['Precio_por_dia'].to_list()[0]
-                precio = 0
 
-                #Aplicar tarifa
-                if tarifa == 'Por kilometraje':
-                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa de kilometraje es de {int(precio_base)*0.03}€ por kilometro.")
-                    precio = int(precio_base)*0.03
+                st.subheader("Cantidad final a pagar")
+                precio_extras = 0
+                if(wifi):
+                    precio_extras+=30
+                if(gps):
+                    precio_extras+=15
+                if(silla):
+                    precio_extras+=20
+                if(cadenas):
+                    precio_extras+=35
+                
+                if tarifa == 'Por kilometraje' and (wifi or gps or silla or cadenas):
+                    if descuento!=0:
+                        st.markdown(f"Al tratarse de una tarifa por kilometraje, en estos momentos solo se han de abonar los extras. Se dispone de un {descuento}% de descuento, luego, cantidad a pagar:")  
+                        st.header(f"{round(precio_extras-(precio_extras*descuento/100),2)}€")
+                    else:
+                        st.markdown(f"Al tratarse de una tarifa por kilometraje, en estos momentos solo se han de abonar los extras. Luego, cantidad a pagar:")  
+                        st.header(f"{round(precio_extras-(precio_extras*descuento/100),2)}€")
+                elif tarifa == 'Por kilometraje':
+                    st.markdown(f"Pago a realizar tras la entrega del vehículo")
 
                 elif tarifa == 'Por día':
-                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa por día es de {int(precio_base)}€ por día.")
-                    precio = int(precio_base)
+                    if wifi or gps or silla or cadenas:
+                            st.markdown(f"Con un total de {precio_extras}€ en extras")
+                    if descuento!=0:
+                        st.markdown(f"Y un {descuento}% de descuento")
+                        st.header(f"{round((precio_tarifa-(precio_tarifa*descuento/100))*num_dias+precio_extras,2)}€ por {int(num_dias)} días.")
+                    else:
+                        st.header(f"{round((precio_tarifa)*num_dias+precio_extras,2)}€ por {int(num_dias)} días.")
 
                 elif tarifa == 'Semanal':
-                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa semanal es de {int(precio_base)*6.3}€ por semana.")
-                    precio = int(precio_base)*6.3
+                    if wifi or gps or silla or cadenas:
+                            st.markdown(f"Con un total de {precio_extras}€ en extras")
+                    if descuento!=0:
+                        st.markdown(f"Y un {descuento}% de descuento")
+                        if(num_semanas>1):
+                            st.header(f"{round((precio_tarifa-(precio_tarifa*descuento/100))*num_semanas+precio_extras,2)}€ por {int(num_semanas)} semanas.")
+                        else:
+                            st.header(f"{round((precio_tarifa-(precio_tarifa*descuento/100))*num_semanas+precio_extras,2)}€ por una semana.")
+                    else:
+                        if(num_semanas>1):
+                            st.header(f"{round(precio_tarifa*num_semanas+precio_extras,2)}€ por {int(num_semanas)} semanas.")
+                        else:
+                            st.header(f"{round(precio_tarifa*num_semanas+precio_extras,2)}€ por una semana.")
 
                 elif tarifa == 'De fin de semana':
-                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa de fin de semana es de {int(precio_base)*1.8}€ por fin de semana.")
-                    precio = int(precio_base)*1.8
+                    if wifi or gps or silla or cadenas:
+                            st.markdown(f"Con un total de {precio_extras}€ en extras")
+                    if descuento!=0:
+                        st.markdown(f"Y un {descuento}% de descuento")  
+                        st.header(f"{round(precio_tarifa-(precio_tarifa*descuento/100)+precio_extras,2)}€ por fin de semana.")
+                    else:
+                        st.header(f"{round(precio_tarifa+precio_extras,2)}€ por fin de semana.")
 
                 elif tarifa == 'De larga duración':
-                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa de larga duración es de {int(precio_base)*0.8}€ por día. Solo se puede aplicar esta tarifa para reservas superiores a 10 días")
-                    precio = int(precio_base)*0.8
+                    if wifi or gps or silla or cadenas:
+                        st.markdown(f"El precio incluye un total de {precio_extras}€ en extras")
+                    if descuento!=0:
+                        st.markdown(f"Y un {descuento}% de descuento")  
+                        st.header(f"{round((precio_tarifa-(precio_tarifa*descuento/100))*num_dias+precio_extras,2)}€ por {int(num_dias)} días.")
+                    else:
+                        st.header(f"{round((precio_tarifa)*num_dias+precio_extras, 2)}€ por {int(num_dias)} días.")
 
-                st.subheader("Precio total teniendo en cuenta posibles extras")
-                if(wifi):
-                    precio+=30
-                if(gps):
-                    precio+=15
-                if(silla):
-                    precio+=20
-                if(cadenas):
-                    precio+=35
-                
-                st.header(f"{precio}€")
-            
+
                 # Info de pago
                 st.subheader("Información de pago")
 
