@@ -1,5 +1,6 @@
 import datetime
 from unicodedata import category
+from jinja2 import Undefined
 import streamlit as st
 import pandas as pd
 from aux_func import *
@@ -20,7 +21,7 @@ descuentos_df = pd.read_csv('descuentos_db.csv')
 # Comprobamos si el usuario es administrador
 is_admin = is_admin(st.session_state.get('user_id'))
 if is_admin:
-    page_list = ("Alquilar Coche", "Modificar datos de usuario", "Gestionar oficinas","Gestionar coches","Comprobar facturación")
+    page_list = ("Alquilar Coche", "Modificar datos de usuario","Mis reservas" ,"Gestionar oficinas","Gestionar coches","Comprobar facturación")
 else:
     page_list = ("Alquilar Coche", "Modificar datos de usuario","Mis reservas")
 page = navigation(st, page_list)
@@ -292,8 +293,12 @@ elif page == "Mis reservas":
         client_ID = st.session_state.get('user_id')
         booking_ids = get_user_bookings(client_ID)
         reservas = reservas_df.loc[booking_ids]
-
-        st.dataframe(reservas.drop(['Tipo Cliente','Num_Tarjeta','Titular'], axis = 1))
+        
+        # if reservas undefined 
+        if reservas.empty:
+            st.write("No tienes reservas")
+        else:
+            st.dataframe(reservas.drop(['Tipo Cliente','Num_Tarjeta','Titular'], axis = 1))
 
         # Eliminar vehículo
         st.subheader("Eliminar reserva")
@@ -462,14 +467,19 @@ elif page == "Alquilar Coche":
 
                 st.subheader("Cantidad final a pagar")
                 precio_extras = 0
+                lista_extras = []
                 if(wifi):
                     precio_extras+=30
+                    lista_extras.append("Wifi")
                 if(gps):
                     precio_extras+=15
+                    lista_extras.append("GPS")
                 if(silla):
                     precio_extras+=20
+                    lista_extras.append("Silla de seguridad")
                 if(cadenas):
                     precio_extras+=35
+                    lista_extras.append("Cadenas de nieve")
                 
                 if tarifa == 'Por kilometraje' and (wifi or gps or silla or cadenas):
                     if descuento!=0:
@@ -523,6 +533,7 @@ elif page == "Alquilar Coche":
                     else:
                         st.header(f"{round((precio_tarifa)*num_dias+precio_extras, 2)}€ por {int(num_dias)} días.")
 
+                precio_final = round(precio_tarifa+precio_extras,2)
 
                 # Info de pago
                 st.subheader("Información de pago")
@@ -581,14 +592,14 @@ elif page == "Alquilar Coche":
                         confirmar_pedido = st.button("Confirmar reserva")
 
                     if confirmar_pedido:
-                        if len(reservas_df) != 0:
-                            new_id =  reservas_df.index[-1] + 1
+                        id_num = len(reservas_df)
+                        reservas_df.loc[id_num] = [fecha_recogida,hora_recogida,fecha_entrega,hora_entrega,oficina_recogida, oficina_entrega,car_selected, client_type_selected, tarifa, descuento, lista_extras, num_tarjeta_selected, nombre_titular_selected, precio_final,True]
+                        reservas_df.to_csv("reservas_db.csv")
+                       
+                        if add_booking_to_user(id_num, st.session_state.get('user_id')) == 0:
+                            st.success("Se ha confirmado la reserva.")
                         else:
-                            new_id = 0
-                        reservas_df.loc[len(reservas_df)] = [new_id, fecha_recogida,hora_recogida,fecha_entrega,hora_entrega,oficina_recogida, oficina_entrega,car_selected, client_type_selected, "Tarifa Test", descuento, "Ninguno", num_tarjeta_selected, nombre_titular_selected, 9999,True]
-                        reservas_df.to_csv("reservas_db.csv", index=False)
-                        st.success("Se ha confirmado la reserva.")
-
+                            st.error("No se ha podido confirmar la reserva. Vuelva a intentarlo.")
 else:
     st.markdown("#")
     st.markdown("#")

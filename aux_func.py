@@ -321,3 +321,14 @@ def get_bookings_for_period(start_date, end_date):
     reservas_df = reservas_df[reservas_df['Fecha Recogida'] >= start_date]
     reservas_df = reservas_df[reservas_df['Fecha Recogida'] <= end_date]
     return reservas_df
+
+
+def add_booking_to_user(id_num, user_id):
+    users_df = pd.read_csv('users_db.csv', index_col=0)
+    reservas_string = users_df.at[user_id,"reservas"]
+    # convert from list in string to list
+    reservas_list = ast.literal_eval(reservas_string)
+    reservas_list.append(id_num)
+    users_df.at[user_id,"reservas"] = reservas_list
+    users_df.to_csv('users_db.csv')
+    return 0
