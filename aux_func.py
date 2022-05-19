@@ -73,7 +73,7 @@ def check_payment(tarjeta_selected, num_tarjeta_selected, cod_seguridad_selected
                     return 2
                 if fecha_expiracion_selected < datetime.date.today():
                     return 3
-                if len(nombre_titular_selected) == 0:
+                if len(nombre_titular_selected) <= 2:
                     return 4
                 return 0
 
@@ -98,9 +98,10 @@ def check_user_and_password(usuario, contraseña="", password=True, email = "", 
 
 def add_user(usuario, contraseña, email, admin):
     users_df = pd.read_csv('users_db.csv', index_col=0)
+    user_id = len(users_df)
     users_df.loc[len(users_df)] = [usuario,email,contraseña,admin,[]]
     users_df.to_csv('users_db.csv')
-    return 0
+    return 0, user_id
 
 # NAVIGATION CONTROL
 def navigation(st, page_list):
@@ -328,6 +329,8 @@ def add_booking_to_user(id_num, user_id):
     reservas_string = users_df.at[user_id,"reservas"]
     # convert from list in string to list
     reservas_list = ast.literal_eval(reservas_string)
+    if reservas_list == None:
+        reservas_list = []
     reservas_list.append(id_num)
     users_df.at[user_id,"reservas"] = reservas_list
     users_df.to_csv('users_db.csv')

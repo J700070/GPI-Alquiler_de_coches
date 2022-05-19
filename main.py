@@ -83,11 +83,12 @@ elif page == "Registro usuario":
         if st.button('Registrar usuario'):
             if check_register_data(st,email, usuario, contraseña, contraseña2,admin,code):
                 # Añadir en la base de datos
-                state = add_user(usuario, contraseña, email, admin)
+                state, user_id = add_user(usuario, contraseña, email, admin)
 
                 if state == 0:
                     st.success("Registro completado correctamente. Ya puedes comenzar a alquilar un coche.")
                     time.sleep(2)
+                    st.session_state['user_id'] = user_id
                     st.session_state['page'] = "Alquilar Coche"
                     st.experimental_rerun()
                 else:
@@ -422,28 +423,28 @@ elif page == "Alquilar Coche":
                     st.error("Las tarifas de larga duración solo están disponibles para reservas superiores a 10 días")
                 elif tarifa == 'De larga duración':
                     precio_tarifa = int(precio_base)*0.8
-                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa de larga duración es de {precio_tarifa}€ por día.")
+                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa de larga duración es de {round(precio_tarifa,2)}€ por día.")
                     
                 if tarifa == 'De fin de semana' and (fecha_recogida.weekday()!=4 or num_dias!=2):
                     st.error("Las tarifas de fin de semana solo están disponibles para reservas en fines de semana. Se debe escoger un viernes como fecha de recogida y un domingo como fecha de entrega.")
                 elif tarifa == 'De fin de semana':
                     precio_tarifa = int(precio_base)*1.8
-                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa de fin de semana es de {precio_tarifa}€ por fin de semana.")
+                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa de fin de semana es de {round(precio_tarifa,2)}€ por fin de semana.")
 
                 if tarifa == 'Semanal' and num_dias % 7 != 0:
                     st.error("El número de días de la reserva no es divisible por semanas")
                 elif tarifa == 'Semanal':
                     precio_tarifa = int(precio_base)*6.3
-                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa semanal es de {precio_tarifa}€ por semana.")
+                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa semanal es de {round(precio_tarifa,2)}€ por semana.")
                     num_semanas = num_dias / 7
                       
                 if tarifa == 'Por kilometraje':
                     precio_tarifa = int(precio_base)*0.009
-                    st.markdown(f"Con esta tarifa el pago se realiza en el momento de entregar el vehículo. En estos momentos solo se tendrán que abonar posibles extras que se quieran añadir. El precio por kilometro será de {precio_tarifa}€")
+                    st.markdown(f"Con esta tarifa el pago se realiza en el momento de entregar el vehículo. En estos momentos solo se tendrán que abonar posibles extras que se quieran añadir. El precio por kilometro será de {round(precio_tarifa,2)}€")
 
                 if tarifa == 'Por día':
                     precio_tarifa = int(precio_base)
-                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa por día es de {precio_tarifa}€ por día.")
+                    st.markdown(f"El precio del vehículo seleccionado, con la tarifa por día es de {round(precio_tarifa,2)}€ por día.")
 
 
                 st.subheader("Otros Datos")
@@ -580,7 +581,7 @@ elif page == "Alquilar Coche":
                         st.write("Techo solar: ", solar_roof_selected)
                         st.write("Nombre del vehículo: ", car_selected)
                     info_cols = st.columns(2)
-                    with info_cols[0]:  
+                    with info_cols[0]:
                         st.subheader("Información de pago")
                         st.write("Tarjeta seleccionada: ", tarjeta_selected)
                         st.write("Número de tarjeta: ", num_tarjeta_selected)
