@@ -92,6 +92,12 @@ elif page == "Registro usuario":
                 else:
                     st.error("Error al registrar usuario.")
 
+        st.subheader("¿Ya tienes cuenta?")
+        # Botón de registro
+        if st.button('Ir a inicio de sesión'):
+            st.session_state['page'] = "Iniciar sesión"
+            st.experimental_rerun()
+
 # MODIFICAR DATOS DE USUARIO
 elif page == "Modificar datos de usuario":
     placeholder = st.empty()
