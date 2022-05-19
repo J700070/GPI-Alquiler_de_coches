@@ -316,6 +316,7 @@ elif page == "Mis reservas":
             else:
                 st.error("Error al eliminar reserva.")
 
+# COMPROBAR FACTURAS
 elif page == "Comprobar facturación":
     placeholder = st.empty()
 
@@ -327,22 +328,27 @@ elif page == "Comprobar facturación":
         # current day datetime
         today = datetime.datetime.now()
 
-        start_time = st.slider(
-            "Selecciona el principio del periodo",
-            value=datetime.datetime(2020, 1, 1),
-            min_value=datetime.datetime(2018, 1, 1),
-            max_value=datetime.datetime(2023, 1, 1),
-            format="DD/MM/YY")
-        st.write("Fecha de inicio:", start_time.strftime("%d/%m/%Y"))
-        st.write("Fecha de fin:", today.strftime("%d/%m/%Y"))
+        # start_time = st.date_input("Fecha de inicio",datetime.date(2019, 7, 6))
+        # end_time = st.date_input("Fecha de fin",datetime.date(2021, 7, 6))
 
-        # Get all bookings for the period
-        bookings = get_bookings_for_period(start_time, today)
+        start_time = st.date_input("Fecha de inicio",datetime.date(2020, 1, 1))
+        end_time = st.date_input("Fecha de fin",datetime.date(today.year, today.month, today.day))
 
-        facturación = 0
-        facturación = bookings["Cantidad Pago"].sum() # Total amount paid
+        
+        if st.button('Comprobar facturación'):
+            # Get all bookings for the period
+            bookings = get_bookings_for_period(start_time, end_time)
+            facturación = 0
+            if bookings is None:
+                st.error("No hay reservas para ese periodo.")
+                
+            else:
+                facturación = bookings["Cantidad Pago"].sum() # Total amount paid
 
-        st.header(f"Total facturado: {facturación}€")
+            st.header(f"Total facturado: {facturación}€")
+            
+
+        
 
 
 

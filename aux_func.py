@@ -243,13 +243,10 @@ def delete_office(name):
     return 0
 
 
-def edit_office(name, new_name):
+def edit_office(office_id, new_name):
     offices_df = pd.read_csv('oficinas_db.csv', index_col=0)
     # Comprobar que el nombre no está cogido
-    for i, row in offices_df.iterrows():
-        if row['Nombre'] == name:
-            return 1
-    offices_df.at[name,"Nombre"] = new_name
+    offices_df.at[office_id,"Nombre"] = new_name
     offices_df.to_csv('oficinas_db.csv')
     return 0
 
@@ -272,20 +269,17 @@ def delete_car(car_id):
     cars_df.to_csv('car_db.csv',)
     return 0
 
-def edit_car(name,marca,modelo,category,manual,num_puertas,solar_roof,oficina,precio_por_dia):
+def edit_car(car_index, name,marca,modelo,category,manual,num_puertas,solar_roof,oficina,precio_por_dia):
     cars_df = pd.read_csv('car_db.csv', index_col=0)
-    # Comprobar que el nombre no está cogido
-    for i, row in cars_df.iterrows():
-        if row['Name'] == name:
-            return 1
-    cars_df.at[name,"Marca"] = marca
-    cars_df.at[name,"Modelo"] = modelo
-    cars_df.at[name,"Category"] = category
-    cars_df.at[name,"Manual"] = manual
-    cars_df.at[name,"Num_Puertas"] = num_puertas
-    cars_df.at[name,"Solar_Roof"] = solar_roof
-    cars_df.at[name,"Oficina"] = oficina
-    cars_df.at[name,"Precio_por_Dia"] = precio_por_dia
+    cars_df.at[car_index,"Name"] = name
+    cars_df.at[car_index,"Marca"] = marca
+    cars_df.at[car_index,"Modelo"] = modelo
+    cars_df.at[car_index,"Category"] = category
+    cars_df.at[car_index,"Manual"] = manual
+    cars_df.at[car_index,"Num_Puertas"] = num_puertas
+    cars_df.at[car_index,"Solar_Roof"] = solar_roof
+    cars_df.at[car_index,"Oficina"] = oficina
+    cars_df.at[car_index,"Precio_por_Dia"] = precio_por_dia
     cars_df.to_csv('car_db.csv')
     return 0
 
@@ -316,9 +310,9 @@ def delete_user_booking(client_id, booking_id):
     return 0
 
 def get_bookings_for_period(start_date, end_date):
-    reservas_df = pd.read_csv('reservas_db.csv', index_col=0)
+    reservas_df = pd.read_csv('reservas_db.csv')
     # convert fecha recogida to datetime
-    reservas_df['Fecha Recogida'] = pd.to_datetime(reservas_df['Fecha Recogida'])
+    reservas_df['Fecha Recogida'] = pd.to_datetime(reservas_df['Fecha Recogida']).dt.date
     reservas_df = reservas_df[reservas_df['Fecha Recogida'] >= start_date]
     reservas_df = reservas_df[reservas_df['Fecha Recogida'] <= end_date]
     return reservas_df
